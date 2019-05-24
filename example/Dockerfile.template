@@ -6,7 +6,7 @@ RUN  install_packages default-jdk cmake swig
 
 ENV JAVA_HOME=/usr/lib/jvm/default-java
 ENV JAVA_LIB=/usr/local/lib/java
-ENV MRAA_VERSION=0a12c5a0177f9fa8e7c4c564e70a65c4a0bb81af
+ENV MRAA_VERSION=v1.9.0
 RUN     git clone https://github.com/intel-iot-devkit/mraa.git \
      && cd mraa \
      && git checkout -b build "${MRAA_VERSION}" \
@@ -42,5 +42,6 @@ COPY --from=build /usr/local/bin/mraa-* /usr/local/bin/
 COPY --from=build /app/mraa/examples/java/Example.class ./
 
 COPY . ./
+ENV UDEV=on
 
 CMD ["bash", "start.sh"]

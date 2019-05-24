@@ -25,7 +25,7 @@ RUN     cd mraa \
 ##
 # Runtime image
 ##
-FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu:xenial-build
+FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu:xenial-run
 
 WORKDIR /app
 

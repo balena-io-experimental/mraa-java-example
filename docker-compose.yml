@@ -1,0 +1,6 @@
+version: '2'
+services:
+  example:
+    build: ./example
+    privileged: true
+    network_mode: host

@@ -1,0 +1,46 @@
+FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu:xenial-build as build
+
+WORKDIR /app
+
+RUN  install_packages default-jdk cmake swig
+
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV JAVA_LIB=/usr/local/lib/java
+ENV MRAA_VERSION=0a12c5a0177f9fa8e7c4c564e70a65c4a0bb81af
+RUN     git clone https://github.com/intel-iot-devkit/mraa.git \
+     && cd mraa \
+     && git checkout -b build "${MRAA_VERSION}" \
+     && mkdir build \
+     && cd build \
+     && cmake -DBUILDSWIGJAVA=ON -DBUILDSWIGNODE=OFF .. \
+     && make \
+     && make install
+
+
+# Compile example
+RUN     cd mraa \
+     && cd examples/java \
+     && javac -cp "${JAVA_LIB}/mraa.jar":. Example.java
+
+##
+# Runtime image
+##
+FROM balenalib/%%BALENA_MACHINE_NAME%%-ubuntu:xenial-build
+
+WORKDIR /app
+
+RUN  install_packages default-jre
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV JAVA_LIB=/usr/local/lib/java
+ENV LD_LIBRARY_PATH=/usr/local/lib/
+
+COPY --from=build /usr/local/include/mraa* /usr/local/include/
+COPY --from=build /usr/local/lib/libmraa* /usr/local/lib/
+COPY --from=build /usr/local/lib/java/mraa.jar /usr/local/lib/java/mraa.jar
+COPY --from=build /usr/local/bin/mraa-* /usr/local/bin/
+# Copy over the example file we had compiled, that's our application
+COPY --from=build /app/mraa/examples/java/Example.class ./
+
+COPY . ./
+
+CMD ["bash", "start.sh"]
